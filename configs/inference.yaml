@@ -1,4 +1,10 @@
-mode: mode_1024
+mode: mode_512
+framework: onnx
+device: cpu
+
+weights:
+  pytorch: trained_model/scrfd_10g.pth
+  onnx: trained_model/scrfd_500.onnx
 
 mode_512:
   checkpoint: trained_model_03.t7
@@ -13,8 +19,8 @@ mode_1024:
   windowName: Result Mode 1024
 
 saveVisualize: False
-lightFolder: data/example_light/rotate_light_3/txt/
-path_image: data/images_test/face1.jpg
+lightFolder: data/example_light/rotate_light_2/txt/
+path_image: data/images_test/timi2.png
 modelFolder: trained_model/
-showResult: True
+showResult: False
 saveResult: False
