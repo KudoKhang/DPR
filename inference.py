@@ -8,33 +8,7 @@ import cv2
 from configs.load_configs import configs
 from utils.utils_SH import *
 
-def video(total=72):
-    print(f'Processing video ---{os.path.basename(path_video)}--- \nPlease Uong mieng nuoc & an mieng banh de...')
-    frame_width = int(cap.get(3))
-    frame_height = int(cap.get(4))
-    size = (frame_width, frame_height)
-    fps = 1
-    os.makedirs('results/', exist_ok=True)
-    saved_path = f'results/{name}' + path_video.split('/')[-1]
-    out = cv2.VideoWriter(saved_path,
-                          cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
-                          fps, size)
-
-    with alive_bar(total=total, theme='musical', length=150) as bar:
-        while True:
-            _, frame = cap.read()
-            try:
-                frame_matting = predictor.run(frame)
-
-                out.write(frame)
-                bar()
-            except KeyboardInterrupt:
-                print("Stoped!")
-                out.release()
-                break
-    out.release()
-    print(f"Video saved in: {saved_path}")
-
+from test_face_detection import *
 
 def create_sh(i):
     # rendering half-sphere
@@ -76,6 +50,16 @@ my_network.train(False)
 # process input
 img = cv2.imread(configs["path_image"])
 img_ori = img.copy()
+img_ori_1 = img.copy()
+
+# Face Detection
+bboxes = face_detection_model.run(img)
+bboxes_sizes = [(bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) for bbox in bboxes]
+biggest_bbox = bboxes[np.argmax(bboxes_sizes)][:4]
+square_bbox = transform_to_square_bbox(biggest_bbox, img)
+x1, y1, x2, y2 = square_bbox
+img = img[y1:y2, x1:x2]
+
 row, col, _ = img.shape
 size = tuple((int(configs[mode]['size']), int(configs[mode]['size'])))
 img = cv2.resize(img, size)
@@ -83,7 +67,7 @@ Lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 
 inputL = process_inputL(Lab)
 
-for i in range(72):
+for i in range(1):
     sh = create_sh(i)
     normal, valid = create_normal_and_valid(img_size=256)
     shading = get_shading(normal, sh)
@@ -115,10 +99,12 @@ for i in range(72):
     Lab[:, :, 0] = outputImg
     resultLab = cv2.cvtColor(Lab, cv2.COLOR_LAB2BGR)
     resultLab = cv2.resize(resultLab, (col, row))
+    cv2.imwrite("result_crop.png", resultLab)
+    img_ori[y1:y2, x1:x2] = resultLab
 
     path_saveFolder = os.path.join(configs[mode]["saveFolder"], os.path.basename(configs["path_image"])[:-4])
     os.makedirs(path_saveFolder, exist_ok=True)
-    final = cv2.hconcat([img_ori, resultLab])
+    final = cv2.hconcat([img_ori_1, img_ori])
 
     cv2.imwrite(os.path.join(path_saveFolder, str(i) + ".jpg"), resultLab)
     cv2.imwrite(os.path.join(path_saveFolder, "hconcat_" + str(i) + ".jpg"), final)

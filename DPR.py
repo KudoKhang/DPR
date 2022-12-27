@@ -167,4 +167,4 @@ class DPR:
 if __name__ == "__main__":
     dpr = DPR()
     n_lighting = len(os.listdir(configs["lightFolder"]))
-    video(predictor=dpr, fps=5, n_lighting=n_lighting, name='face1_light3')
+    video(predictor=dpr, fps=5, n_lighting=n_lighting, name='timi2_light2')
